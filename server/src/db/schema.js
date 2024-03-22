@@ -6,8 +6,13 @@ export const User = mysqlTable("User", {
   lastName: varchar("last_name", { length: 256 }).required(),
   email: varchar("email", { length: 256 }).required(),
   password: varchar("password", { length: 256 }).required(),
-  grade: mysqlEnum("grade", ["Professeur", "enseignant","Assistant Master A"
-   ,"Assistant Master B", "Lecturer A","Lecturer B"]).required(),
-  role: mysqlEnum("role",["admin","enseignant"]),
+  grade: mysqlEnum("grade", [
+    "Professeur",
+    "enseignant",
+    "Assistant Master A",
+    "Assistant Master B",
+    "Lecturer A",
+    "Lecturer B",
+  ]).required(),
+  role: mysqlEnum("role", ["admin", "enseignant"]).required(),
 });
-
