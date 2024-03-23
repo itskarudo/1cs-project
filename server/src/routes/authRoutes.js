@@ -1,10 +1,26 @@
-const express = require('express');
-const authRouter = express.Router();
-const { User } = require('../db/schema');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken'); // JWT library to be used for later
+import express from 'express';
+import { db } from "../db/index.js";
+import { User } from '../db/schema.js';
+import bcrypt from 'bcrypt';
+import { sql } from 'drizzle-orm';
+import jwt from 'jsonwebtoken'; // JWT library to be used for later
 
-// const JWT_SECRET = process.env.JWT_SECRET;
+const authRouter = express.Router();
+
+authRouter.use(express.json());
+
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+const grades = [
+  "Professeur",
+  "enseignant",
+  "Assistant Master A",
+  "Assistant Master B",
+  "Lecturer A",
+  "Lecturer B",
+]
+
+const roles = ["admin", "enseignant"]
 
 authRouter.post('/signup', async (req, res) => {
   try {
@@ -14,23 +30,40 @@ authRouter.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (!email.match(emailRegex)) {
+      return res.status(400).json({error: 'Invalid email format'})
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({error: 'Password should 8 characters or longer'})
+    }
+
+    if (!grades.includes(grade)) {
+      return res.status(400).json({ error: `Only the following ranks are available: ${grades.join(', ')}` });
+    }
+
+    if (!roles.includes(role)) {
+      return res.status(400).json({ error: `Only the following roles are available: ${roles.join(', ')}` });
+    }
+
+    // values provided to `sql` function are parameterized automatically
+    const existingUser = await db.select().from(User).where(sql`${User.email} = ${email}`).limit(1);
+    
+    if (Object.keys(existingUser).length !== 0) {
       return res.status(400).json({ error: 'User already exists' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new User({
-      firstName,
-      lastName,
-      email,
+    await db.insert(User)
+      .values({
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
       password: hashedPassword,
-      grade,
-      role,
+      grade: grade,
+      role: role
     });
-
-    await newUser.save();
 
     return res.status(201).json({ message: 'User signed up successfully' });
     
@@ -40,4 +73,4 @@ authRouter.post('/signup', async (req, res) => {
   }
 });
 
-module.exports = authRouter;
+export default authRouter;

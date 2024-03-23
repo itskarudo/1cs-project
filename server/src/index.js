@@ -1,13 +1,13 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const exampleRouter = require('./routes/example');
-const authRouter = require('./routes/authRouter');
+import express from 'express';
+import 'dotenv/config';
+import exampleRouter from './routes/example.js';
+import authRouter from './routes/authRoutes.js';
 
 dotenv.config();
 
 const app = express();
 
-app.use('/api/example', exampleRouter);
+app.use('/', exampleRouter);
 
 app.use('/auth', authRouter);
 

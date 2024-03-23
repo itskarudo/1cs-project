@@ -1,5 +1,7 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
+import 'dotenv/config';
+import { User } from './schema.js';
 
 const connection = await mysql.createConnection({
   host: process.env.DB_HOST,
@@ -9,4 +11,4 @@ const connection = await mysql.createConnection({
   database: process.env.DB_DATABASE,
 });
 
-export const db = drizzle(connection);
+export const db = drizzle(connection, { User });
