@@ -94,7 +94,22 @@ authRouter.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Incorrect password' });
     }
 
-    return res.status(200).json({ message: 'Login successful', user });
+    const token = jwt.sign(
+      {
+        id: user[0].id,
+        email: user[0].email,
+        role: user[0].role,
+        grade: user[0].grade,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1y",
+      },
+    );
+
+    return res.status(200).cookie("access_token", token, {
+      httpOnly: true,
+      maxAge: 365 * 24 * 60 * 60 * 1000,}).json({ message: 'Login successful', user });
     
   } catch (error) {
     console.error('Error logging in user:', error);
