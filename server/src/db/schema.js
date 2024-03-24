@@ -1,7 +1,7 @@
-import { mysqlTable, mysqlEnum, serial, varchar } from "drizzle-orm/mysql-core";
+import { mysqlTable, mysqlEnum, int, varchar } from "drizzle-orm/mysql-core";
 
 export const User = mysqlTable("User", {
-  id: serial("id").primaryKey(),
+  id: int("id").autoincrement().primaryKey(),
   firstName: varchar("first_name", { length: 256 }).notNull(),
   lastName: varchar("last_name", { length: 256 }).notNull(),
   email: varchar("email", { length: 256 }).notNull(),
