@@ -73,4 +73,33 @@ authRouter.post('/signup', async (req, res) => {
   }
 });
 
+
+authRouter.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const user = await db.select().from(User).where(sql`${User.email} = ${email}`).limit(1);
+
+    if (Object.keys(user).length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user[0].password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Incorrect password' });
+    }
+
+    return res.status(200).json({ message: 'Login successful', user });
+    
+  } catch (error) {
+    console.error('Error logging in user:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default authRouter;
