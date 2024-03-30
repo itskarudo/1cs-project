@@ -9,7 +9,7 @@ export const NavBar = () => {
 
 return (
     <nav>
-        <Link to="/" className="title">LOGO</Link>
+        <Link to="/dashboard" className="title">LOGO</Link>
         <div className="menu" onClick={() => {
             setMenuOpen(!menuOpen);
         }}>
@@ -19,7 +19,7 @@ return (
             
         </div>
        <ul className={menuOpen ? "open" : ""}>
-        <li> <NavLink to="/" >Accueil </NavLink></li>
+        <li> <NavLink to="/dashboard" >Accueil </NavLink></li>
         <li> <NavLink to="/Calendrier">Calendrier</NavLink></li>
         <li> <NavLink to="/Virement">Virement </NavLink></li>
         <li> <NavLink to="Notifications">Notifications </NavLink></li>
