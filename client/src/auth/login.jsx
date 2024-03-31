@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Link,  useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AlertPassword } from "@/components/ui/alertpassword";
-
+import axios from 'axios';
 function Login() {
   const [formData, setFormData] = useState({
     email: "",
@@ -34,7 +34,7 @@ function Login() {
         password: formData.password,
       });
       // Store token in localStorage
-      localStorage.setItem("token", response.data.token);
+     
       // Update loggedIn state to true
       setFormData({ ...formData, loggedIn: true });
     } catch (error) {
