@@ -9,18 +9,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
-import { Link,  useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AlertPassword } from "@/components/ui/alertpassword";
-import axios from 'axios';
+import { useAuth } from "@/contexts/AuthContext";
 function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    loggedIn: false,
   });
   const [alert, setAlert] = useState(false);
-  const navigate=useNavigate();
+  const navigate = useNavigate();
+  const auth = useAuth();
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -28,29 +28,17 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url = "http://localhost:3000/auth/login";
-      const response = await axios.post(url, {
-        email: formData.email,
-        password: formData.password,
-      });
-      // Store token in localStorage
-     
-      // Update loggedIn state to true
-      setFormData({ ...formData, loggedIn: true });
+      await auth.login(formData);
+      navigate("/dashboard");
     } catch (error) {
       console.error(error);
       setAlert(true);
     }
   };
 
-  // Redirect to home page if logged in
-  if (formData.loggedIn) {
-     navigate("/welcom");
-  }
-
   return (
     <div className="flex justify-center items-center h-screen">
-      <Card className="w-[350px] h-[370px]">
+      <Card className="w-[350px] pb-8">
         <CardHeader>
           <CardTitle>Login</CardTitle>
           <CardDescription>Welcome Back!</CardDescription>
@@ -80,10 +68,12 @@ function Login() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" onClick={handleSubmit}>
-            Login
-          </Button>
-          {alert && <AlertPassword />}
+          <div className="space-y-4">
+            <Button className="w-full" onClick={handleSubmit}>
+              Login
+            </Button>
+            {alert && <AlertPassword />}
+          </div>
         </CardFooter>
         <div className=" text-center text-sm text-muted-foreground ">
           <span className="">
