@@ -1,9 +1,7 @@
 import express from "express";
 import { db } from "../db/index.js";
-import { Grade, User } from "../db/schema.js";
+import { Grade, User, Seance } from "../db/schema.js";
 import { eq } from "drizzle-orm";
-
-const TIME_PATTERN = /^\d{2}h-\d{2}h$/;
 
 const userRouter = express.Router();
 
@@ -42,7 +40,7 @@ userRouter.get("/users/:id", async (req, res) => {
       .where(eq(User.id, req.params.id))
       .limit(1);
 
-    return res.status(200).json({ user });
+    return res.status(200).json({ user: user[0] });
   } catch (error) {
     console.error("Error fetching user:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -67,20 +65,14 @@ userRouter.patch("/users/:id", async (req, res) => {
     const userId = req.params.id;
     const updateData = req.body;
 
-    // Loop through the keys in updateData and set them in the update query
-    Object.keys(updateData).forEach(async (key) => {
-      await db
-        .update(User)
-        .set({ [key]: updateData[key] })
-        .where(eq(User.id, userId));
-    });
+    await db.update(User).set(updateData).where(eq(User.id, userId));
 
-    res
-      .status(200)
-      .send("User with id : '" + userId + "' updated successfully");
+    return res.status(200).json({
+      message: "User with id : '" + req.params.id + "' is updated successfully",
+    });
   } catch (error) {
     console.error("Error updating user:", error);
-    res.status(500).send("Internal server error");
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -111,6 +103,21 @@ userRouter.post("/grades", async (req, res) => {
     return res.status(201).json({ message: "Grade added successfully" });
   } catch (error) {
     console.error("Error adding grade:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+//route to fetch certain user's seances
+userRouter.get("/users/:id/seances", async (req, res) => {
+  try {
+    const seances = await db
+      .select()
+      .from(Seance)
+      .where(eq(Seance.ProfId, req.params.id));
+
+    return res.status(200).json({ seances });
+  } catch (error) {
+    console.error("Error fetching seances:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });

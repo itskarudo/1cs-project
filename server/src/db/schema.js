@@ -5,6 +5,7 @@ import {
   varchar,
   date,
   boolean,
+  time,
 } from "drizzle-orm/mysql-core";
 
 export const User = mysqlTable("User", {
@@ -14,7 +15,7 @@ export const User = mysqlTable("User", {
   email: varchar("email", { length: 256 }).notNull(),
   password: varchar("password", { length: 256 }).notNull(),
   gradeId: int("grade_id")
-    .references(() => Grade.id)
+    .references(() => Grade.id, { onUpdate: "cascade", onDelete: "set null" })
     .notNull(),
   role: mysqlEnum("role", ["admin", "enseignant"]).notNull(),
 });
@@ -31,16 +32,17 @@ export const Seance = mysqlTable("Seance", {
     "Saturday",
     "Friday",
   ]).notNull(),
-  Time: varchar("Time", { length: 10 }).notNull(),
+  StartTime: time("Start_time").notNull(),
+  EndTime: time("End_time").notNull(),
   Location: varchar("Location", { length: 10 }).notNull(),
   Type: mysqlEnum("Type", ["Cours", "TD", "TP"]).notNull(),
   Module: varchar("Module", { length: 50 }).notNull(),
   Group: int("Group").notNull(),
   ProfId: int("Prof_id")
-    .references(() => User.id)
+    .references(() => User.id, { onUpdate: "cascade", onDelete: "cascade" })
     .notNull(),
   ScheduleId: int("Schedule_id")
-    .references(() => Schedule.id)
+    .references(() => Schedule.id, { onUpdate: "cascade", onDelete: "cascade" })
     .notNull(),
 });
 
@@ -53,7 +55,8 @@ export const Schedule = mysqlTable("Schedule", {
     "2CS",
     "3CS",
   ]).notNull(),
-  Semester: mysqlEnum("Schedule", ["S1", "S2"]).notNull(),
+  Semester: mysqlEnum("Semester", ["S1", "S2"]).notNull(),
+  Speciality: mysqlEnum("Speciality", ["SIW", "ISI", "MI", "INFO"]).notNull(),
 });
 
 export const Session = mysqlTable("Session", {
@@ -61,13 +64,16 @@ export const Session = mysqlTable("Session", {
   StartDate: date("Start_date").notNull(),
   FinishDate: date("Finish_date").notNull(),
   ScheduleId: int("Schedule_id")
-    .references(() => Schedule.id)
+    .references(() => Schedule.id, {
+      onUpdate: "cascade",
+      onDelete: "set null",
+    })
     .notNull(),
 });
 
 export const Grade = mysqlTable("Grade", {
   id: int("id").autoincrement().primaryKey(),
-  Value: mysqlEnum("grade", [
+  Value: mysqlEnum("Value", [
     "Professeur",
     "enseignant",
     "Assistant Master A",
