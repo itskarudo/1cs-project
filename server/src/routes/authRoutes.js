@@ -3,7 +3,7 @@ import { db } from "../db/index.js";
 import { User } from "../db/schema.js";
 import bcrypt from "bcrypt";
 import { sql } from "drizzle-orm";
-import jwt from "jsonwebtoken"; // JWT library to be used for later
+import jwt from "jsonwebtoken";
 
 const authRouter = express.Router();
 
@@ -11,22 +11,12 @@ authRouter.use(express.json());
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-const grades = [
-  "Professeur",
-  "enseignant",
-  "Assistant Master A",
-  "Assistant Master B",
-  "Lecturer A",
-  "Lecturer B",
-];
-
 const roles = ["admin", "enseignant"];
 
 authRouter.post("/signup", async (req, res) => {
   try {
-    const { firstName, lastName, email, password, grade, role } = req.body;
-
-    if (!firstName || !lastName || !email || !password || !grade || !role) {
+    const { firstName, lastName, email, password, gradeId, role } = req.body;
+    if (!firstName || !lastName || !email || !password || !gradeId || !role) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
@@ -38,12 +28,6 @@ authRouter.post("/signup", async (req, res) => {
       return res
         .status(400)
         .json({ error: "Password should 8 characters or longer" });
-    }
-
-    if (!grades.includes(grade)) {
-      return res.status(400).json({
-        error: `Only the following ranks are available: ${grades.join(", ")}`,
-      });
     }
 
     if (!roles.includes(role)) {
@@ -70,7 +54,7 @@ authRouter.post("/signup", async (req, res) => {
       lastName: lastName,
       email: email,
       password: hashedPassword,
-      grade: grade,
+      gradeId: gradeId,
       role: role,
     });
 
@@ -112,7 +96,7 @@ authRouter.post("/login", async (req, res) => {
         lastName: user[0].lastName,
         email: user[0].email,
         role: user[0].role,
-        grade: user[0].grade,
+        grade: user[0].gradeId,
       },
       process.env.JWT_SECRET,
       {
