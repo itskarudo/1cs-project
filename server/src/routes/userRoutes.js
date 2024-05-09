@@ -76,37 +76,6 @@ userRouter.patch("/users/:id", async (req, res) => {
   }
 });
 
-//route to add a grade
-userRouter.post("/grades", async (req, res) => {
-  try {
-    const { Value, PricePerHour } = req.body;
-
-    if (!Value || !PricePerHour) {
-      return res.status(400).json({ error: "All fields are required" });
-    }
-
-    const existingGrade = await db
-      .select()
-      .from(Grade)
-      .where(eq(Grade.Value, Value))
-      .limit(1);
-
-    if (existingGrade.length !== 0) {
-      return res.status(400).json({ error: "Grade already exists" });
-    }
-
-    await db.insert(Grade).values({
-      Value: Value,
-      PricePerHour: PricePerHour,
-    });
-
-    return res.status(201).json({ message: "Grade added successfully" });
-  } catch (error) {
-    console.error("Error adding grade:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
-
 //route to fetch certain user's seances
 userRouter.get("/users/:id/seances", async (req, res) => {
   try {
