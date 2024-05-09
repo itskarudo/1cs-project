@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AlertDestructive } from "@/components/ui/alertdemo";
 function Signup() {
   const [formData, setFormData] = useState({
@@ -31,9 +31,15 @@ function Signup() {
   });
 
   const [alert, setAlert] = useState(false);
+  const [grades, setGrades] = useState([]);
+
+  useEffect(() => {
+    const url = "http://localhost:3000/grades";
+    axios.get(url).then((res) => setGrades(res.data.grades));
+  }, []);
 
   // due to how shadcn <Select /> elements work, this needs to be its own state.
-  const [grade, setGrade] = useState("");
+  const [gradeId, setGradeId] = useState("");
 
   const navigate = useNavigate();
   const handleChange = (e) => {
@@ -56,7 +62,7 @@ function Signup() {
 
         email: formData.email,
         password: formData.password,
-        grade: grade,
+        gradeId: parseInt(gradeId),
         role: "admin",
       });
       navigate("/login");
@@ -105,22 +111,17 @@ function Signup() {
             </div>
             <div className="flex flex-col items-start space-y-2">
               <Label htmlFor="grade">Grade</Label>
-              <Select onValueChange={setGrade} value={formData.grade}>
-                <SelectTrigger className="">
-                  <SelectValue placeholder="" />
+              <Select onValueChange={setGradeId} value={formData.grade}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a grade..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="Professeur">Professeur</SelectItem>
-                    <SelectItem value="enseignant">Enseignant</SelectItem>
-                    <SelectItem value="Assistant Master A">
-                      Assistant Master A
-                    </SelectItem>
-                    <SelectItem value="Assistant Master B">
-                      Assistant Master B
-                    </SelectItem>
-                    <SelectItem value="Lecturer A">Lecturer A</SelectItem>
-                    <SelectItem value="Lecturer B">Lecturer B</SelectItem>
+                    {grades.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        {g.Value}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>

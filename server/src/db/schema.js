@@ -15,7 +15,7 @@ export const User = mysqlTable("User", {
   email: varchar("email", { length: 256 }).notNull(),
   password: varchar("password", { length: 256 }).notNull(),
   gradeId: int("grade_id")
-    .references(() => Grade.id, { onUpdate: "cascade", onDelete: "set null" })
+    .references(() => Grade.id, { onUpdate: "cascade", onDelete: "cascade" })
     .notNull(),
   role: mysqlEnum("role", ["admin", "enseignant"]).notNull(),
 });
@@ -66,7 +66,7 @@ export const Session = mysqlTable("Session", {
   ScheduleId: int("Schedule_id")
     .references(() => Schedule.id, {
       onUpdate: "cascade",
-      onDelete: "set null",
+      onDelete: "cascade",
     })
     .notNull(),
 });
