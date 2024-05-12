@@ -1,7 +1,8 @@
 import express from "express";
 import { db } from "../db/index.js";
 import { Grade, User, Seance } from "../db/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, sql,and } from "drizzle-orm";
+import { DateTime } from "luxon";
 
 const userRouter = express.Router();
 
@@ -90,5 +91,91 @@ userRouter.get("/users/:id/seances", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+userRouter.get("/users/:id/seances/supplementary", async (req, res) => {
+  const userId = req.params.id;
+  const barrier = 18;
+  const coef = 1.5;
+  let total = 0;
+  let suppHours;
+
+  try {
+    // Check if the user with the specified ID exists
+    const user = await db
+      .select()
+      .from(User)
+      .where(eq(User.id, userId));
+
+    if (user.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    let seances = await db
+      .select()
+      .from(Seance)
+      .where(and(eq(Seance.ProfId, userId)));
+
+    if (seances.length > 0) {
+      for (const seance of seances) {
+        const startTime = DateTime.fromISO(seance.StartTime, { zone: 'utc' });
+        const endTime = DateTime.fromISO(seance.EndTime, { zone: 'utc' });
+        const durationInHours = calculateDuration(startTime, endTime);
+
+        if (seance.Type === "Cours") {
+          total += durationInHours * coef;
+        } else {
+          total += durationInHours;
+        }
+
+        if (total < barrier) {
+          await db.update(Seance)
+            .set({ isHeurSupp: 0 })
+            .where(eq(Seance.id, seance.id));
+        }
+      }
+    }
+
+    const seancesWithSupp = await db
+      .select()
+      .from(Seance)
+      .where(sql`${Seance.ProfId} = ${userId} and ${Seance.isHeurSupp} = 1`);
+
+    if (seancesWithSupp.length > 0) {
+      const userGrade = await db
+        .select({ gradeId: User.gradeId })
+        .from(User)
+        .where(eq(User.id, userId));
+
+      const gradeId = userGrade[0].gradeId;
+
+      const pricing = await db
+        .select({ pricing: Grade.PricePerHour })
+        .from(Grade)
+        .where(eq(Grade.id, gradeId));
+
+      const pricePerHour = pricing[0].pricing;
+
+      suppHours = total - barrier;
+      const pureAmount = suppHours * pricePerHour;
+
+      return res.status(200).json({ suppSeances: seancesWithSupp, pureAmount: `${pureAmount} DA` });
+    }
+
+    return res.status(200).json({ suppSeances: seancesWithSupp, pureAmount: `0 DA` });
+
+  } catch (error) {
+    console.error("Error fetching seances:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+function calculateDuration(startTime, endTime) {
+  const diffInMilliseconds = endTime.diff(startTime).milliseconds;
+  const durationInHours = diffInMilliseconds / (1000 * 60 * 60);
+  return parseFloat(durationInHours.toFixed(2));
+}
+
 
 export default userRouter;

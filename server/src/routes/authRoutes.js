@@ -27,12 +27,12 @@ authRouter.post("/signup", async (req, res) => {
     if (password.length < 8) {
       return res
         .status(400)
-        .json({ error: "Password should 8 characters or longer" });
+        .json({ error: "Password must be 8 characters or longer" });
     }
 
     if (!roles.includes(role)) {
       return res.status(400).json({
-        error: `Only the following roles are available: ${roles.join(", ")}`,
+        error: `Only the following roles are available (case sensitive): ${roles.join(", ")}`,
       });
     }
 
