@@ -6,11 +6,13 @@ import userRouter from "./routes/userRoutes.js";
 import scheduleRouter from "./routes/scheduleRoutes.js";
 import sessionRouter from "./routes/sessionRoutes.js";
 import gradeRouter from "./routes/gradeRoutes.js";
-import cookieParser from 'cookie-parser';
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
 const app = express();
+app.use(express.json());
+
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 app.use("/auth", authRouter);

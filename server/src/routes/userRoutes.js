@@ -1,12 +1,10 @@
 import express from "express";
 import { db } from "../db/index.js";
-import { Grade, User, Seance } from "../db/schema.js";
-import { eq, sql,and } from "drizzle-orm";
-import { DateTime } from "luxon";
+import { Grade, User, Seance, Session, Absence } from "../db/schema.js";
+import { eq, sql, and } from "drizzle-orm";
+import { DateTime, Interval } from "luxon";
 
 const userRouter = express.Router();
-
-userRouter.use(express.json());
 
 userRouter.get("/enseignants", async (req, res) => {
   try {
@@ -92,62 +90,53 @@ userRouter.get("/users/:id/seances", async (req, res) => {
   }
 });
 
-
 userRouter.get("/users/:id/seances/supplementary", async (req, res) => {
   const userId = req.params.id;
-  const barrier = 18;
-  const coef = 1.5;
-  let total = 0;
-  let suppHours;
-
   try {
-    // Check if the user with the specified ID exists
-    const user = await db
+    let supplementary = suppHours(userId);
+
+    return res.status(200).json({ supplementary });
+  } catch (error) {
+    console.error("Error fetching seances:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+userRouter.get("/users/:id/payement", async (req, res) => {
+  const userId = req.params.id;
+  try {
+    let supplementaryPerWeek = await suppHours(userId);
+    const Today = new Date().toISOString();
+
+    const currentSession = await db
       .select()
-      .from(User)
-      .where(eq(User.id, userId));
+      .from(Session)
+      .where(
+        sql`${Session.StartDate} <= ${Today} and ${Session.FinishDate} >= ${Today}`
+      );
 
-    if (user.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    const differenceInTime =
+      currentSession[0].FinishDate.getTime() -
+      currentSession[0].StartDate.getTime();
 
-    let seances = await db
+    const differenceInWeeks = Math.round(
+      differenceInTime / (1000 * 3600 * 24 * 7)
+    );
+
+    const totalSupplementary = differenceInWeeks * supplementaryPerWeek.length;
+
+    // now we calculates les absences
+    const absences = await db
       .select()
-      .from(Seance)
-      .where(and(eq(Seance.ProfId, userId)));
+      .from(Absence)
+      .where(
+        sql`${Absence.Date} <= ${currentSession[0].FinishDate} and ${Absence.Date} >= ${currentSession[0].StartDate}
+         and ${Absence.ProfId} = ${userId}`
+      );
+    if (totalSupplementary > 0) {
+      const user = await db.select().from(User).where(eq(User.id, userId));
 
-    if (seances.length > 0) {
-      for (const seance of seances) {
-        const startTime = DateTime.fromISO(seance.StartTime, { zone: 'utc' });
-        const endTime = DateTime.fromISO(seance.EndTime, { zone: 'utc' });
-        const durationInHours = calculateDuration(startTime, endTime);
-
-        if (seance.Type === "Cours") {
-          total += durationInHours * coef;
-        } else {
-          total += durationInHours;
-        }
-
-        if (total < barrier) {
-          await db.update(Seance)
-            .set({ isHeurSupp: 0 })
-            .where(eq(Seance.id, seance.id));
-        }
-      }
-    }
-
-    const seancesWithSupp = await db
-      .select()
-      .from(Seance)
-      .where(sql`${Seance.ProfId} = ${userId} and ${Seance.isHeurSupp} = 1`);
-
-    if (seancesWithSupp.length > 0) {
-      const userGrade = await db
-        .select({ gradeId: User.gradeId })
-        .from(User)
-        .where(eq(User.id, userId));
-
-      const gradeId = userGrade[0].gradeId;
+      const gradeId = user[0].gradeId;
 
       const pricing = await db
         .select({ pricing: Grade.PricePerHour })
@@ -155,27 +144,88 @@ userRouter.get("/users/:id/seances/supplementary", async (req, res) => {
         .where(eq(Grade.id, gradeId));
 
       const pricePerHour = pricing[0].pricing;
+      const SupplementaryNumber = totalSupplementary - absences.length;
+      const pureAmount = SupplementaryNumber * pricePerHour;
 
-      suppHours = total - barrier;
-      const pureAmount = suppHours * pricePerHour;
-
-      return res.status(200).json({ suppSeances: seancesWithSupp, pureAmount: `${pureAmount} DA` });
+      return res.status(200).json({
+        TotalSuppSeancesNumber: totalSupplementary,
+        PureSuppSeancesNumber: SupplementaryNumber,
+        PureAmount: `${pureAmount} DA`,
+      });
     }
-
-    return res.status(200).json({ suppSeances: seancesWithSupp, pureAmount: `0 DA` });
-
   } catch (error) {
-    console.error("Error fetching seances:", error);
+    console.error("Error :", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
 
+userRouter.post("/users/:id/absences", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { Date, SeanceId } = req.body;
 
-function calculateDuration(startTime, endTime) {
-  const diffInMilliseconds = endTime.diff(startTime).milliseconds;
-  const durationInHours = diffInMilliseconds / (1000 * 60 * 60);
-  return parseFloat(durationInHours.toFixed(2));
+    if (!Date || !SeanceId) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    await db.insert(Absence).values({
+      Date: Date,
+      SeanceId: SeanceId,
+      ProfId: userId,
+    });
+
+    return res.status(201).json({ message: "Absence added successfully" });
+  } catch (error) {
+    console.error("Error adding absence:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+userRouter.get("/users/:id/absences", async (req, res) => {
+  try {
+    const absences = await db
+      .select()
+      .from(Absence)
+      .where(eq(Absence.ProfId, req.params.id));
+
+    return res.status(200).json({ absences });
+  } catch (error) {
+    console.error("Error fetching absences:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+//helper functions
+async function suppHours(userId) {
+  const user = await db.select().from(User).where(eq(User.id, userId));
+
+  if (user.length === 0) {
+    return 0;
+  }
+  const Today = new Date().toISOString();
+  const currentSessions = await db
+    .select()
+    .from(Session)
+    .where(
+      sql`${Session.StartDate} <= ${Today} and ${Session.FinishDate} >= ${Today}`
+    );
+
+  let Supplementary = [];
+  for (let i = 0; i < currentSessions.length; i++) {
+    let hours = await db
+      .select()
+      .from(Seance)
+      .where(
+        and(
+          eq(userId, Seance.ProfId),
+          eq(Seance.ScheduleId, currentSessions[i].ScheduleId),
+          eq(Seance.isHeurSupp, 1)
+        )
+      );
+    Supplementary = Supplementary.concat(hours);
+  }
+
+  return Supplementary;
 }
-
 
 export default userRouter;

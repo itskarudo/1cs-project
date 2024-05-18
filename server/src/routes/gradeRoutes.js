@@ -2,13 +2,18 @@ import express from "express";
 import { db } from "../db/index.js";
 import { Grade } from "../db/schema.js";
 import { eq } from "drizzle-orm";
-import { isAdmin } from '../middlewares/middlewares.js';
+import { isAdmin } from "../middlewares/middlewares.js";
 
 const gradeRouter = express.Router();
 
-const allowedGrades = ['Professeur','enseignant','Assistant Master A','Assistant Master B','Lecturer A','Lecturer B'];
-
-gradeRouter.use(express.json());
+const allowedGrades = [
+  "Professeur",
+  "enseignant",
+  "Assistant Master A",
+  "Assistant Master B",
+  "Lecturer A",
+  "Lecturer B",
+];
 
 gradeRouter.get("/", async (req, res) => {
   try {
@@ -22,7 +27,7 @@ gradeRouter.get("/", async (req, res) => {
 });
 
 // Added middleware here, can be removed to simplify the testing process
-gradeRouter.post("/", isAdmin, async (req, res) => {
+gradeRouter.post("/", async (req, res) => {
   try {
     const { Value, PricePerHour } = req.body;
 
@@ -32,7 +37,9 @@ gradeRouter.post("/", isAdmin, async (req, res) => {
 
     if (!allowedGrades.includes(Value)) {
       return res.status(400).json({
-        error: `Only the following ranks are available (case sensetive): ${allowedGrades.join(", ")}`,
+        error: `Only the following ranks are available (case sensetive): ${allowedGrades.join(
+          ", "
+        )}`,
       });
     }
 
@@ -49,7 +56,8 @@ gradeRouter.post("/", isAdmin, async (req, res) => {
 
     if (existingGrade.length !== 0) {
       // if grade already exists, update its PricePerHour
-      await db.update(Grade)
+      await db
+        .update(Grade)
         .set({ PricePerHour: PricePerHour })
         .where(eq(Grade.Value, Value));
 
@@ -59,7 +67,7 @@ gradeRouter.post("/", isAdmin, async (req, res) => {
     // grade doesn't exist, insert a new grade
     await db.insert(Grade).values({
       Value: Value,
-      Price_per_hour: PricePerHour,
+      PricePerHour: PricePerHour,
     });
 
     return res.status(201).json({ message: "Grade added successfully" });

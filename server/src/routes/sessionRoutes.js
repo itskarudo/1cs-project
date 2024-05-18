@@ -4,7 +4,6 @@ import { Session } from "../db/schema.js";
 import { eq, and } from "drizzle-orm";
 
 const sessionRouter = express.Router();
-sessionRouter.use(express.json());
 
 sessionRouter.get("/:id", async (req, res) => {
   try {

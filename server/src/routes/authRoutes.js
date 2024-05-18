@@ -7,8 +7,6 @@ import jwt from "jsonwebtoken";
 
 const authRouter = express.Router();
 
-authRouter.use(express.json());
-
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 const roles = ["admin", "enseignant"];
@@ -32,7 +30,9 @@ authRouter.post("/signup", async (req, res) => {
 
     if (!roles.includes(role)) {
       return res.status(400).json({
-        error: `Only the following roles are available (case sensitive): ${roles.join(", ")}`,
+        error: `Only the following roles are available (case sensitive): ${roles.join(
+          ", "
+        )}`,
       });
     }
 
@@ -101,7 +101,7 @@ authRouter.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       {
         expiresIn: "1y",
-      },
+      }
     );
 
     return res

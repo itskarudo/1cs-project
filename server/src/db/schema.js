@@ -14,10 +14,22 @@ export const User = mysqlTable("User", {
   lastName: varchar("last_name", { length: 256 }).notNull(),
   email: varchar("email", { length: 256 }).notNull(),
   password: varchar("password", { length: 256 }).notNull(),
+  absence: int("absence").references(() => Absence.id),
   gradeId: int("grade_id")
     .references(() => Grade.id, { onUpdate: "cascade", onDelete: "cascade" })
     .notNull(),
   role: mysqlEnum("role", ["admin", "enseignant"]).notNull(),
+});
+
+export const Absence = mysqlTable("Absence", {
+  id: int("id").autoincrement().primaryKey(),
+  Date: date("Date").notNull(),
+  SeanceId: int("seance_id")
+    .references(() => Seance.id)
+    .notNull(),
+  ProfId: int("Prof_id")
+    .references(() => User.id)
+    .notNull(),
 });
 
 export const Seance = mysqlTable("Seance", {

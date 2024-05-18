@@ -2,9 +2,9 @@ import express from "express";
 import { db } from "../db/index.js";
 import { User, Seance, Schedule } from "../db/schema.js";
 import { eq, and } from "drizzle-orm";
+import { DateTime } from "luxon";
 
 const scheduleRouter = express.Router();
-scheduleRouter.use(express.json());
 
 scheduleRouter.get("/:id", async (req, res) => {
   try {
@@ -121,7 +121,7 @@ scheduleRouter.post("/:id/seances", async (req, res) => {
       )
       .limit(1);
 
-    await db.insert(Seance).values({
+    let seanceQuery = await db.insert(Seance).values({
       Day: Day,
       StartTime: StartTime,
       EndTime: EndTime,
@@ -132,7 +132,12 @@ scheduleRouter.post("/:id/seances", async (req, res) => {
       ProfId: Prof[0].id,
       ScheduleId: req.params.id,
     });
-
+    let seance = await db
+      .select()
+      .from(Seance)
+      .where(eq(Seance.id, seanceQuery[0].insertId))
+      .limit(1);
+    supplementary(seance[0]);
     return res.status(201).json({ message: "Seance added successfully" });
   } catch (error) {
     console.error("Error adding seance:", error);
@@ -154,5 +159,70 @@ scheduleRouter.get("/:id/seances", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// helper functions
+async function supplementary(seance) {
+  const userId = seance.ProfId;
+  const barrier = 18;
+  const coef = 1.5;
+  const unit = 2;
+  let total = 0;
+  try {
+    let seances = await db
+      .select()
+      .from(Seance)
+      .where(eq(Seance.ProfId, userId));
+    if (seances.length > 0) {
+      let i = 0;
+      while (
+        seances[i].Type === "Cours" &&
+        total < barrier &&
+        i < seances.length
+      ) {
+        const startTime = DateTime.fromISO(seances[i].StartTime, {
+          zone: "utc",
+        });
+        const endTime = DateTime.fromISO(seances[i].EndTime, { zone: "utc" });
+        const durationInHours = calculateDuration(startTime, endTime);
+
+        total += durationInHours * coef * unit;
+        console.log(total);
+        await db
+          .update(Seance)
+          .set({ isHeurSupp: 0 })
+          .where(eq(Seance.id, seances[i].id));
+        i++;
+      }
+      i = 0;
+      while (
+        seances[i].Type !== "Cours" &&
+        total < barrier &&
+        i < seances.length
+      ) {
+        const startTime = DateTime.fromISO(seances[i].StartTime, {
+          zone: "utc",
+        });
+        const endTime = DateTime.fromISO(seances[i].EndTime, { zone: "utc" });
+        const durationInHours = calculateDuration(startTime, endTime);
+
+        total += durationInHours * unit;
+
+        await db
+          .update(Seance)
+          .set({ isHeurSupp: 0 })
+          .where(eq(Seance.id, seances[i].id));
+        i++;
+      }
+    }
+  } catch (error) {
+    console.error("Error :", error);
+  }
+}
+
+function calculateDuration(startTime, endTime) {
+  const diffInMilliseconds = endTime.diff(startTime).milliseconds;
+  const durationInHours = diffInMilliseconds / (1000 * 60 * 60);
+  return parseFloat(durationInHours.toFixed(2));
+}
 
 export default scheduleRouter;
