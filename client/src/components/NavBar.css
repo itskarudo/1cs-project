@@ -1,5 +1,5 @@
 .active {
-  color: red;
+  color: rgb(33, 74, 206);
 }
 
 nav {
@@ -8,10 +8,11 @@ nav {
   align-items: center;
   background-color: white;
   box: shadow 1px;
+  height: 85px;
 }
 
 nav .title {
-  font-size: 40px;
+  font-size: 30px;
   margin: 30px;
   font-weight: bold;
   text-decoration: none;
@@ -28,8 +29,8 @@ nav ul li {
   padding: 10px;
   margin: 0 20px;
   border-radius: 10px;
-  font-size: 20px;
-  font-weight: 500;
+  font-size: 18px;
+ 
 }
 
 nav ul li a {
@@ -51,7 +52,7 @@ nav .menu {
 nav .menu span {
   height: 0.4rem;
   width: 100%;
-  background-color: red;
+  background-color: rgb(75, 118, 236);
   border-radius: 0.2rem;
 }
 
