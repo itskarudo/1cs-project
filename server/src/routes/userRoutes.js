@@ -3,6 +3,7 @@ import { db } from "../db/index.js";
 import { Grade, User, Seance, Session, Absence } from "../db/schema.js";
 import { eq, sql, and } from "drizzle-orm";
 import { DateTime, Interval } from "luxon";
+import { calculateDuration } from "./scheduleRoutes.js";
 
 const userRouter = express.Router();
 
@@ -93,7 +94,7 @@ userRouter.get("/users/:id/seances", async (req, res) => {
 userRouter.get("/users/:id/seances/supplementary", async (req, res) => {
   const userId = req.params.id;
   try {
-    let supplementary = suppHours(userId);
+    let supplementary = await suppHours(userId);
 
     return res.status(200).json({ supplementary });
   } catch (error) {
@@ -123,7 +124,18 @@ userRouter.get("/users/:id/payement", async (req, res) => {
       differenceInTime / (1000 * 3600 * 24 * 7)
     );
 
-    const totalSupplementary = differenceInWeeks * supplementaryPerWeek.length;
+    //calculate how many hours total
+    let supplementaryPerWeekHours = 0;
+    for (let i = 0; i < supplementaryPerWeek.length; i++) {
+      const startTime = DateTime.fromISO(supplementaryPerWeek[i].StartTime, {
+        zone: "utc",
+      });
+      const endTime = DateTime.fromISO(supplementaryPerWeek[i].EndTime, {
+        zone: "utc",
+      });
+      supplementaryPerWeekHours += calculateDuration(startTime, endTime);
+    }
+    const totalSupplementary = differenceInWeeks * supplementaryPerWeekHours;
 
     // now we calculates les absences
     const absences = await db
@@ -133,6 +145,23 @@ userRouter.get("/users/:id/payement", async (req, res) => {
         sql`${Absence.Date} <= ${currentSession[0].FinishDate} and ${Absence.Date} >= ${currentSession[0].StartDate}
          and ${Absence.ProfId} = ${userId}`
       );
+    // fetch the original seance to know the duration
+    let absencesHours = 0;
+    for (let i = 0; i < absences.length; i++) {
+      const originalSeance = await db
+        .select()
+        .from(Seance)
+        .where(eq(Seance.id, absences[i].SeanceId));
+
+      const startTime = DateTime.fromISO(originalSeance[i].StartTime, {
+        zone: "utc",
+      });
+      const endTime = DateTime.fromISO(originalSeance[i].EndTime, {
+        zone: "utc",
+      });
+      absencesHours += calculateDuration(startTime, endTime);
+    }
+
     if (totalSupplementary > 0) {
       const user = await db.select().from(User).where(eq(User.id, userId));
 
@@ -144,12 +173,13 @@ userRouter.get("/users/:id/payement", async (req, res) => {
         .where(eq(Grade.id, gradeId));
 
       const pricePerHour = pricing[0].pricing;
-      const SupplementaryNumber = totalSupplementary - absences.length;
+      const SupplementaryNumber = totalSupplementary - absencesHours;
       const pureAmount = SupplementaryNumber * pricePerHour;
 
       return res.status(200).json({
-        TotalSuppSeancesNumber: totalSupplementary,
-        PureSuppSeancesNumber: SupplementaryNumber,
+        TotalSuppHours: totalSupplementary,
+        TotalWeeks: differenceInWeeks,
+        PureSuppHoursNumber: SupplementaryNumber,
         PureAmount: `${pureAmount} DA`,
       });
     }
