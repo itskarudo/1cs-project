@@ -80,13 +80,13 @@ export const Virement = () => {
                       <div className="space-y-1">
                         <Card>
                           <CardHeader>
-                            <CardTitle>card1
+                            <CardTitle>First virment session
                               
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <p>Amount: 100.00</p>
-                            <p>Total Hours Supplémentaire: 10.00</p>
+                          <p className="text-gray-600 ">Total Hours Supplémentaire : <span className="text-gray-900 font-bold ms-auto space-x-4  d-flex justify-content-end"> 10h</span></p>
+                            <p className="text-gray-600 ">Amount: <span className="text-blue-600 ms-auto font-bold d-flex justify-content-end" >100.00 DA</span></p>
                             <div className="flex justify-end">
                             <HoverCard>
       <HoverCardTrigger asChild>
@@ -94,10 +94,10 @@ export const Virement = () => {
       </HoverCardTrigger>
       <HoverCardContent className="w-80">
         <div className="flex justify-between space-x-4">
-          <p>avatar</p>
+          <p></p>
           <div className="space-y-1">
-            <h4 className="text-sm font-semibold">Card1</h4>
-            <p className="text-sm">
+            <h4 className="text-sm font-semibold">1st session</h4>
+            <p className="text-sm text-gray-600">
               Total Hours Supplementaires per section : <span> 30h</span>
             </p>
             <div className="flex items-center pt-2">
@@ -120,25 +120,41 @@ export const Virement = () => {
                       <div className="space-y-1">
                         <Card>
                           <CardHeader>
-                            <CardTitle>Card 2</CardTitle>
+                            <CardTitle>Second virment session</CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <p>Amount: 200.00</p>
-                            <p>Total Hours Supplémentaire: 20.00</p>
+                          <p className="text-gray-600 ">Total Hours Supplémentaire : <span className="text-gray-900 font-bold ms-auto space-x-4  d-flex justify-content-end"> 10h</span></p>
+                            <p className="text-gray-600 ">Amount: <span className="text-blue-600 ms-auto font-bold d-flex justify-content-end" >100.00 DA</span></p>
+                            <div className="flex justify-end">
+                            <HoverCard>
+                            <HoverCardTrigger asChild>
+        <Button variant="link" className="font-bold">. . .</Button>
+      </HoverCardTrigger>
+      <HoverCardContent className="w-80">
+        <div className="flex justify-between space-x-4">
+          <p></p>
+          <div className="space-y-1">
+            <h4 className="text-sm font-semibold">2nd session</h4>
+            <p className="text-sm text-gray-600">
+              Total Hours Supplementaires per section : <span> 30h</span>
+            </p>
+            <div className="flex items-center pt-2">
+              <p>
+              amount : 
+              <span className="text-xs text-muted-foreground">
+                 7000000 DA
+              </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </HoverCardContent>
+    </HoverCard>
+                            </div>
                           </CardContent>
                         </Card>
                       </div>
-                      <div className="space-y-1">
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>Card 3</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p>Amount: 300.00</p>
-                            <p>Total Hours Supplémentaire: 30.00</p>
-                          </CardContent>
-                        </Card>
-                      </div>
+                      
                     </CardContent>
                   </Card>
                 </TabsContent>

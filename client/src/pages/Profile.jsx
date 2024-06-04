@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -88,7 +88,7 @@ export const Profile = () => {
         </div>
         <div className="w-1/2">
           <Label htmlFor="place_of_birth" className="text-gray-600">Place of Birth</Label>
-          <p className="text-gray-800">Paris, France</p>
+          <p className="text-gray-800">Annaba, Algeria</p>
         </div>
       </div>
      
@@ -108,7 +108,7 @@ export const Profile = () => {
           <p className="text-gray-800">Mathematics</p>
         </div>
         <div className="w-1/2">
-          <Label htmlFor="position" className="text-gray-600">Position</Label>
+          <Label htmlFor="position" className="text-gray-600">Grade</Label>
           <p className="text-gray-800">Professor</p>
         </div>
       </div>
