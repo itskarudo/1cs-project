@@ -1,0 +1,234 @@
+:root {
+    --textColor: hsl(240, 4%, 36%);
+    --inputColor: rgb(239 , 239, 239);
+    --bodyColor: rgb(240, 240 , 246);
+    --cardBG: rgb(225, 225, 235);
+    --greyText: rgb(190, 190, 190);
+
+}
+
+.Profile{
+    width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+
+    .overlay {
+        position:absolute;
+        height: 100%;
+        width: 100%;
+        background: white;
+        top: 0;
+        bottom: 0;
+        z-index: 1;
+        mix-blend-mode: hard-light;
+    }
+
+    img {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        top: 0;
+        bottom: 0;
+        object-fit: cover;
+    }
+    .ProfileContent{
+        width: 100%;
+        height: max-content;
+        padding: 3rem 5rem 30rem ;
+        display: flex;
+        row-gap: 0rem;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        margin: auto;
+        color: black;
+        z-index: 100;
+
+        .textDiv{
+            padding: 2rem 0;
+
+            .smallText{
+                font-size: 35px;
+                text-transform: uppercase;
+
+            }
+            .ProfileTitle{
+                position: relative;
+                font-size: 5rem;
+            }
+
+        }
+
+        .ProfileTitleD{
+                position: relative;
+                font-size: 25px;
+                font-weight: 500;
+                padding-bottom: 20px;
+
+                span{
+                    color: rgb(65, 143, 232);
+                }
+
+               
+              
+
+        }
+        
+        .cardDiv{
+            position: relative;
+            padding: 3rem 1rem;
+            background: white;
+            border-radius: 10px;
+            gap: 1rem;
+            padding-top: 20px;
+
+            label{
+                display: block;
+                color: var(--textColor);
+                padding-bottom: 10px;
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            .labelTotal{
+                justify-content: space-between;
+                align-items: center;
+
+                .total{
+                    color: var(--textColor);
+                    padding-bottom: 10px;
+                    font-size: 18px;
+
+                }
+
+            }
+            .input{
+                height: 40px;
+                padding: 0 1rem;
+                background: var(--inputColor);
+                border-radius: 3rem;
+
+                input{
+                    background: none;
+                    border: none;
+                    outline: none;
+                    width: 100%;
+                    font-size: 13px;
+                    font-weight: 500;
+                }
+            }
+         
+
+
+           
+        }
+    }
+}
+
+@media screen and (min-width: 500px) {
+    .Profile{
+        .ProfileContent{
+            .textDiv{
+                .smallText{
+                    font-size: 16px;
+                }
+                .ProfileTitle{
+                    position: relative;
+                    font-size: 2.3rem;
+                    width: max-content;
+
+                    &::after {
+                        position: absolute;
+                        content: '';
+                        background: rgb(65, 143, 232);
+                        height: 5px;
+                        width: 145PX;
+                        right: 0px;
+                        bottom: 5px;
+                        z-index: -1;
+                        border-radius: 10PX;
+                    }
+                }
+            }
+
+            .ProfileTitleD{
+                position: relative;
+                    font-size: 2.3rem;
+                    width: max-content;
+
+                    &::after {
+                        position: absolute;
+                        content: '';
+                        background: rgb(65, 143, 232);
+                        height: 5px;
+                        width: 145PX;
+                        right: 0px;
+                        bottom: 5px;
+                        z-index: -1;
+                        border-radius: 10PX;
+                    }
+                
+
+            }
+
+
+            .cardDiv{
+                grid-template-columns: repeat(2,1fr);
+            }
+        }
+    }
+    
+}
+
+@media screen and (min-width: 660px) {
+    .Profile{
+        .ProfileContent{
+            .cardDiv{
+                padding: 2rem 1rem;
+                grid-template-columns:repeat(3,1fr) ;
+                justify-content: center;
+            }
+        }
+    }
+    
+}
+
+@media screen and (min-width: 940px) {
+    .Profile{
+       height: 100vh;
+
+       
+    
+    }
+    
+}
+
+@media screen and (min-width: 1240px) {
+    .Profile{
+        height: 130vh;
+
+        .ProfileContent{
+          
+
+            .cardDiv{
+                padding: 2rem 1rem;
+                grid-template-columns:repeat(3,1fr) ;
+                justify-content: center;
+    
+                .AllMonths{
+                    bottom: -1rem;
+                    padding: 8px 1rem;
+    
+                    span{
+                        font-size: 17px;
+                    }
+                }
+            }
+        }
+    }
+    
+}
+
