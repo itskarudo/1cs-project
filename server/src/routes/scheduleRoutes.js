@@ -219,7 +219,7 @@ async function supplementary(seance) {
   }
 }
 
-function calculateDuration(startTime, endTime) {
+export function calculateDuration(startTime, endTime) {
   const diffInMilliseconds = endTime.diff(startTime).milliseconds;
   const durationInHours = diffInMilliseconds / (1000 * 60 * 60);
   return parseFloat(durationInHours.toFixed(2));
