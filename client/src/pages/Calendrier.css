@@ -6,7 +6,7 @@
   --greyText: rgb(190, 190, 190);
 }
 
-.Accueil {
+.Calendrier {
   width: 100%;
   position: relative;
   align-items: center;
@@ -31,7 +31,7 @@
     bottom: 0;
     object-fit: cover;
   }
-  .AccueilContent {
+  .CalendrierContent {
     width: 100%;
     height: max-content;
     padding: 3rem 5rem 3rem;
@@ -46,20 +46,18 @@
 
     .textDiv {
       padding: 2rem 0;
-      font-weight: bold;
 
       .smallText {
         font-size: 35px;
         text-transform: uppercase;
       }
-      .AccueilTitle {
+      .CalendrierTitle {
         position: relative;
         font-size: 5rem;
-        text-transform: uppercase;
       }
     }
 
-    .AccueilTitleD {
+    .CalendrierTitleD {
       position: relative;
       font-size: 25px;
       font-weight: 500;
@@ -73,6 +71,7 @@
     .cardDiv {
       position: relative;
       padding: 3rem 1rem;
+      background: white;
       border-radius: 10px;
       gap: 1rem;
       padding-top: 20px;
@@ -119,14 +118,12 @@
         padding: 5px 1rem;
         border-radius: 3rem;
         left: 50%;
-        display: flex;
-        align-items: center;
         transform: translate(-50%);
         justify-content: center;
         cursor: pointer;
 
         &:hover {
-          background: rgb(40, 40, 106);
+          background: var(--inputColor);
         }
         .icon {
           font-size: 18px;
@@ -141,51 +138,46 @@
 }
 
 @media screen and (min-width: 500px) {
-  .Accueil {
-    .AccueilContent {
+  .Calendrier {
+    .CalendrierContent {
       .textDiv {
         .smallText {
           font-size: 16px;
         }
-        .AccueilTitle {
+        .CalendrierTitle {
+          position: relative;
           font-size: 2.3rem;
           width: max-content;
-
-          span {
-            position: relative;
-            &::after {
-              position: absolute;
-              content: "";
-              background: rgb(65, 143, 232);
-              height: 5px;
-              width: 100%;
-              right: 0px;
-              bottom: 2px;
-              z-index: -1;
-              border-radius: 10px;
-            }
-          }
-        }
-      }
-
-      .AccueilTitleD {
-        font-size: 2.3rem;
-        width: max-content;
-
-        span {
-          position: relative;
 
           &::after {
             position: absolute;
             content: "";
             background: rgb(65, 143, 232);
             height: 5px;
-            width: 100%;
+            width: 145px;
             right: 0px;
-            bottom: -2px;
+            bottom: 5px;
             z-index: -1;
             border-radius: 10px;
           }
+        }
+      }
+
+      .CalendrierTitleD {
+        position: relative;
+        font-size: 2.3rem;
+        width: max-content;
+
+        &::after {
+          position: absolute;
+          content: "";
+          background: rgb(65, 143, 232);
+          height: 5px;
+          width: 145px;
+          right: 0px;
+          bottom: 5px;
+          z-index: -1;
+          border-radius: 10px;
         }
       }
 
@@ -197,8 +189,8 @@
 }
 
 @media screen and (min-width: 660px) {
-  .Accueil {
-    .AccueilContent {
+  .Calendrier {
+    .CalendrierContent {
       .cardDiv {
         padding: 2rem 1rem;
         grid-template-columns: repeat(3, 1fr);
@@ -209,8 +201,8 @@
 }
 
 @media screen and (min-width: 1240px) {
-  .Accueil {
-    .AccueilContent {
+  .Calendrier {
+    .CalendrierContent {
       .cardDiv {
         padding: 2rem 1rem;
         grid-template-columns: repeat(3, 1fr);

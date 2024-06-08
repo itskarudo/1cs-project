@@ -18,10 +18,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { AlertDestructive } from "@/components/ui/alertdemo";
+import { useAuth } from "@/contexts/AuthContext";
 function Signup() {
+  const auth = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -70,6 +72,10 @@ function Signup() {
       console.error(error);
     }
   };
+
+  if (!auth.isAuthReady) return null;
+  if (auth.isLoggedIn) return <Navigate replace to="/" />;
+
   return (
     <div className="flex justify-center items-center h-screen">
       <Card className="w-[350px] pb-8">

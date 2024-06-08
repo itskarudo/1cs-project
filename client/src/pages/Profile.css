@@ -6,7 +6,7 @@
   --greyText: rgb(190, 190, 190);
 }
 
-.Accueil {
+.Profile {
   width: 100%;
   position: relative;
   align-items: center;
@@ -17,6 +17,7 @@
     position: absolute;
     height: 100%;
     width: 100%;
+    background: white;
     top: 0;
     bottom: 0;
     z-index: 1;
@@ -31,7 +32,7 @@
     bottom: 0;
     object-fit: cover;
   }
-  .AccueilContent {
+  .ProfileContent {
     width: 100%;
     height: max-content;
     padding: 3rem 5rem 3rem;
@@ -46,20 +47,18 @@
 
     .textDiv {
       padding: 2rem 0;
-      font-weight: bold;
 
       .smallText {
         font-size: 35px;
         text-transform: uppercase;
       }
-      .AccueilTitle {
+      .ProfileTitle {
         position: relative;
         font-size: 5rem;
-        text-transform: uppercase;
       }
     }
 
-    .AccueilTitleD {
+    .ProfileTitleD {
       position: relative;
       font-size: 25px;
       font-weight: 500;
@@ -73,6 +72,7 @@
     .cardDiv {
       position: relative;
       padding: 3rem 1rem;
+      background: white;
       border-radius: 10px;
       gap: 1rem;
       padding-top: 20px;
@@ -110,82 +110,51 @@
           font-weight: 500;
         }
       }
-      .AllMonths {
-        position: absolute;
-        background: rgb(30, 30, 96);
-        width: max-content;
-        bottom: -0.7rem;
-        column-gap: 0.8rem;
-        padding: 5px 1rem;
-        border-radius: 3rem;
-        left: 50%;
-        display: flex;
-        align-items: center;
-        transform: translate(-50%);
-        justify-content: center;
-        cursor: pointer;
-
-        &:hover {
-          background: rgb(40, 40, 106);
-        }
-        .icon {
-          font-size: 18px;
-        }
-        span {
-          padding-left: 5px;
-          font-size: 13px;
-        }
-      }
     }
   }
 }
 
 @media screen and (min-width: 500px) {
-  .Accueil {
-    .AccueilContent {
+  .Profile {
+    .ProfileContent {
       .textDiv {
         .smallText {
           font-size: 16px;
         }
-        .AccueilTitle {
+        .ProfileTitle {
+          position: relative;
           font-size: 2.3rem;
           width: max-content;
-
-          span {
-            position: relative;
-            &::after {
-              position: absolute;
-              content: "";
-              background: rgb(65, 143, 232);
-              height: 5px;
-              width: 100%;
-              right: 0px;
-              bottom: 2px;
-              z-index: -1;
-              border-radius: 10px;
-            }
-          }
-        }
-      }
-
-      .AccueilTitleD {
-        font-size: 2.3rem;
-        width: max-content;
-
-        span {
-          position: relative;
 
           &::after {
             position: absolute;
             content: "";
             background: rgb(65, 143, 232);
             height: 5px;
-            width: 100%;
+            width: 145px;
             right: 0px;
-            bottom: -2px;
+            bottom: 5px;
             z-index: -1;
             border-radius: 10px;
           }
+        }
+      }
+
+      .ProfileTitleD {
+        position: relative;
+        font-size: 2.3rem;
+        width: max-content;
+
+        &::after {
+          position: absolute;
+          content: "";
+          background: rgb(65, 143, 232);
+          height: 5px;
+          width: 145px;
+          right: 0px;
+          bottom: 5px;
+          z-index: -1;
+          border-radius: 10px;
         }
       }
 
@@ -197,8 +166,8 @@
 }
 
 @media screen and (min-width: 660px) {
-  .Accueil {
-    .AccueilContent {
+  .Profile {
+    .ProfileContent {
       .cardDiv {
         padding: 2rem 1rem;
         grid-template-columns: repeat(3, 1fr);
@@ -207,10 +176,9 @@
     }
   }
 }
-
 @media screen and (min-width: 1240px) {
-  .Accueil {
-    .AccueilContent {
+  .Profile {
+    .ProfileContent {
       .cardDiv {
         padding: 2rem 1rem;
         grid-template-columns: repeat(3, 1fr);

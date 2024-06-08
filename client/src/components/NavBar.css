@@ -6,7 +6,6 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: white;
   box: shadow 1px;
   height: 85px;
 }
@@ -30,7 +29,6 @@ nav ul li {
   margin: 0 20px;
   border-radius: 10px;
   font-size: 18px;
- 
 }
 
 nav ul li a {

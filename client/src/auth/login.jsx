@@ -13,6 +13,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AlertPassword } from "@/components/ui/alertpassword";
 import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 function Login() {
   const [formData, setFormData] = useState({
     email: "",
@@ -29,12 +30,15 @@ function Login() {
     e.preventDefault();
     try {
       await auth.login(formData);
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       console.error(error);
       setAlert(true);
     }
   };
+
+  if (!auth.isAuthReady) return null;
+  if (auth.isLoggedIn) return <Navigate replace to="/" />;
 
   return (
     <div className="flex justify-center items-center h-screen">
@@ -77,7 +81,7 @@ function Login() {
         </CardFooter>
         <div className=" text-center text-sm text-muted-foreground ">
           <span className="">
-            Register admin!
+            No admins yet?{" "}
             <Link
               to="/Signup"
               className="ml-1 underline underline-offset-4 hover:text-primary"

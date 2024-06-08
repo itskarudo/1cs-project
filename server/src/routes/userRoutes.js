@@ -1,8 +1,16 @@
 import express from "express";
+import bcrypt from "bcrypt";
 import { db } from "../db/index.js";
-import { Grade, User, Seance, Session, Absence } from "../db/schema.js";
+import {
+  Grade,
+  User,
+  Seance,
+  Session,
+  Absence,
+  Schedule,
+} from "../db/schema.js";
 import { eq, sql, and } from "drizzle-orm";
-import { DateTime, Interval } from "luxon";
+import { DateTime } from "luxon";
 import { calculateDuration } from "./scheduleRoutes.js";
 
 const userRouter = express.Router();
@@ -47,12 +55,13 @@ userRouter.get("/users/:id", async (req, res) => {
   }
 });
 
-userRouter.delete("/users/:id", async (req, res) => {
+userRouter.delete("/users/:email", async (req, res) => {
   try {
-    await db.delete(User).where(eq(User.id, req.params.id));
+    await db.delete(User).where(eq(User.email, req.params.email));
 
     return res.status(200).json({
-      message: "User with id : '" + req.params.id + "' is deleted successfully",
+      message:
+        "User with email : '" + req.params.email + "' is deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting the user:", error);
@@ -64,6 +73,10 @@ userRouter.patch("/users/:id", async (req, res) => {
   try {
     const userId = req.params.id;
     const updateData = req.body;
+
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
 
     await db.update(User).set(updateData).where(eq(User.id, userId));
 
@@ -83,6 +96,14 @@ userRouter.get("/users/:id/seances", async (req, res) => {
       .select()
       .from(Seance)
       .where(eq(Seance.ProfId, req.params.id));
+
+    for (let s of seances) {
+      const sched = await db
+        .select()
+        .from(Schedule)
+        .where(eq(Schedule.id, s.ScheduleId));
+      s.schedule = sched[0];
+    }
 
     return res.status(200).json({ seances });
   } catch (error) {
@@ -113,15 +134,23 @@ userRouter.get("/users/:id/payement", async (req, res) => {
       .select()
       .from(Session)
       .where(
-        sql`${Session.StartDate} <= ${Today} and ${Session.FinishDate} >= ${Today}`
+        sql`${Session.StartDate} <= ${Today} and ${Session.FinishDate} >= ${Today}`,
       );
+
+    if (currentSession.length === 0)
+      return res.status(200).json({
+        TotalSuppHours: 0,
+        TotalWeeks: 0,
+        PureSuppHoursNumber: 0,
+        PureAmount: 0,
+      });
 
     const differenceInTime =
       currentSession[0].FinishDate.getTime() -
       currentSession[0].StartDate.getTime();
 
     const differenceInWeeks = Math.round(
-      differenceInTime / (1000 * 3600 * 24 * 7)
+      differenceInTime / (1000 * 3600 * 24 * 7),
     );
 
     //calculate how many hours total
@@ -143,7 +172,7 @@ userRouter.get("/users/:id/payement", async (req, res) => {
       .from(Absence)
       .where(
         sql`${Absence.Date} <= ${currentSession[0].FinishDate} and ${Absence.Date} >= ${currentSession[0].StartDate}
-         and ${Absence.ProfId} = ${userId}`
+         and ${Absence.ProfId} = ${userId}`,
       );
     // fetch the original seance to know the duration
     let absencesHours = 0;
@@ -153,36 +182,43 @@ userRouter.get("/users/:id/payement", async (req, res) => {
         .from(Seance)
         .where(eq(Seance.id, absences[i].SeanceId));
 
-      const startTime = DateTime.fromISO(originalSeance[i].StartTime, {
+      const startTime = DateTime.fromISO(originalSeance[0].StartTime, {
         zone: "utc",
       });
-      const endTime = DateTime.fromISO(originalSeance[i].EndTime, {
+      const endTime = DateTime.fromISO(originalSeance[0].EndTime, {
         zone: "utc",
       });
       absencesHours += calculateDuration(startTime, endTime);
     }
 
-    if (totalSupplementary > 0) {
-      const user = await db.select().from(User).where(eq(User.id, userId));
-
-      const gradeId = user[0].gradeId;
-
-      const pricing = await db
-        .select({ pricing: Grade.PricePerHour })
-        .from(Grade)
-        .where(eq(Grade.id, gradeId));
-
-      const pricePerHour = pricing[0].pricing;
-      const SupplementaryNumber = totalSupplementary - absencesHours;
-      const pureAmount = SupplementaryNumber * pricePerHour;
-
+    if (totalSupplementary === 0) {
       return res.status(200).json({
-        TotalSuppHours: totalSupplementary,
+        TotalSuppHours: 0,
         TotalWeeks: differenceInWeeks,
-        PureSuppHoursNumber: SupplementaryNumber,
-        PureAmount: `${pureAmount} DA`,
+        PureSuppHoursNumber: 0,
+        PureAmount: 0,
       });
     }
+
+    const user = await db.select().from(User).where(eq(User.id, userId));
+
+    const gradeId = user[0].gradeId;
+
+    const pricing = await db
+      .select({ pricing: Grade.PricePerHour })
+      .from(Grade)
+      .where(eq(Grade.id, gradeId));
+
+    const pricePerHour = pricing[0].pricing;
+    const SupplementaryNumber = totalSupplementary - absencesHours;
+    const pureAmount = SupplementaryNumber * pricePerHour;
+
+    return res.status(200).json({
+      TotalSuppHours: totalSupplementary,
+      TotalWeeks: differenceInWeeks,
+      PureSuppHoursNumber: SupplementaryNumber,
+      PureAmount: pureAmount,
+    });
   } catch (error) {
     console.error("Error :", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -237,7 +273,7 @@ async function suppHours(userId) {
     .select()
     .from(Session)
     .where(
-      sql`${Session.StartDate} <= ${Today} and ${Session.FinishDate} >= ${Today}`
+      sql`${Session.StartDate} <= ${Today} and ${Session.FinishDate} >= ${Today}`,
     );
 
   let Supplementary = [];
@@ -249,8 +285,8 @@ async function suppHours(userId) {
         and(
           eq(userId, Seance.ProfId),
           eq(Seance.ScheduleId, currentSessions[i].ScheduleId),
-          eq(Seance.isHeurSupp, 1)
-        )
+          eq(Seance.isHeurSupp, 1),
+        ),
       );
     Supplementary = Supplementary.concat(hours);
   }

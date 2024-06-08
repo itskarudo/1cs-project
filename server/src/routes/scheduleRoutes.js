@@ -46,8 +46,8 @@ scheduleRouter.post("/", async (req, res) => {
         and(
           eq(Schedule.Promotion, Promotion),
           eq(Schedule.Semester, Semester),
-          eq(Schedule.Speciality, Speciality)
-        )
+          eq(Schedule.Speciality, Speciality),
+        ),
       );
 
     if (existingSchedule.length !== 0) {
@@ -60,7 +60,18 @@ scheduleRouter.post("/", async (req, res) => {
       Speciality: Speciality,
     });
 
-    return res.status(201).json({ message: "Schedule added successfully" });
+    const sched = await db
+      .select()
+      .from(Schedule)
+      .where(
+        and(
+          eq(Schedule.Promotion, Promotion),
+          eq(Schedule.Semester, Semester),
+          eq(Schedule.Speciality, Speciality),
+        ),
+      );
+
+    return res.status(201).json({ schedule: sched[0] });
   } catch (error) {
     console.error("Error adding the schedule:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -83,17 +94,8 @@ scheduleRouter.delete("/:id", async (req, res) => {
 
 scheduleRouter.post("/:id/seances", async (req, res) => {
   try {
-    const {
-      Day,
-      StartTime,
-      EndTime,
-      Location,
-      Type,
-      Module,
-      Group,
-      firstName,
-      lastName,
-    } = req.body; //assuming request body has the prof's fullname
+    const { Day, StartTime, EndTime, Location, Type, Module, Group, ProfId } =
+      req.body; //assuming request body has the prof's fullname
 
     if (
       !Day ||
@@ -103,23 +105,10 @@ scheduleRouter.post("/:id/seances", async (req, res) => {
       !Type ||
       !Module ||
       !Group ||
-      !firstName ||
-      !lastName
+      !ProfId
     ) {
       return res.status(400).json({ error: "All fields are required" });
     }
-
-    const Prof = await db
-      .select()
-      .from(User)
-      .where(
-        and(
-          eq(User.firstName, firstName),
-          eq(User.lastName, lastName),
-          eq(User.role, "enseignant")
-        )
-      )
-      .limit(1);
 
     let seanceQuery = await db.insert(Seance).values({
       Day: Day,
@@ -129,7 +118,7 @@ scheduleRouter.post("/:id/seances", async (req, res) => {
       Type: Type,
       Module: Module,
       Group: Group,
-      ProfId: Prof[0].id,
+      ProfId: ProfId,
       ScheduleId: req.params.id,
     });
     let seance = await db
@@ -153,9 +142,29 @@ scheduleRouter.get("/:id/seances", async (req, res) => {
       .from(Seance)
       .where(eq(Seance.ScheduleId, req.params.id));
 
+    for (let s of seances) {
+      const prof = await db.select().from(User).where(eq(User.id, s.ProfId));
+      s.firstName = prof[0].firstName;
+      s.lastName = prof[0].lastName;
+    }
+
     return res.status(200).json({ seances });
   } catch (error) {
     console.error("Error fetching seances:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+scheduleRouter.delete("/:id/seances/:seance", async (req, res) => {
+  try {
+    await db.delete(Seance).where(eq(Seance.id, req.params.seance));
+
+    return res.status(200).json({
+      message:
+        "Seance with id : '" + req.params.seance + "' is deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting seance:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -186,7 +195,6 @@ async function supplementary(seance) {
         const durationInHours = calculateDuration(startTime, endTime);
 
         total += durationInHours * coef * unit;
-        console.log(total);
         await db
           .update(Seance)
           .set({ isHeurSupp: 0 })

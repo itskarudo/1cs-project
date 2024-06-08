@@ -1,67 +1,98 @@
 import React, { useEffect } from "react";
 import "./Accueil.css";
-
-import image from "../../src/images/Banner.png";
-import { FaPlus } from "react-icons/fa";
+import "./Calendrier";
 import Aos from "aos";
 import "aos/dist/aos.css";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import axios from "axios";
+import { useState } from "react";
 
 export const Accueil = () => {
+  const auth = useAuth();
   useEffect(() => {
     Aos.init({ duration: 2000 });
   }, []);
 
-  const auth = useAuth();
+  const [hours, setHours] = useState([]);
+
+  useEffect(() => {
+    const url = `http://localhost:3000/users/${auth.authData.id}/seances/supplementary`;
+    axios.get(url).then((r) => setHours(r.data.supplementary));
+  }, []);
 
   return (
     <section className="Accueil">
       <div className="overlay"></div>
-      <img src={image} alt=" Banner"></img>
       <div className="AccueilContent container">
         <div className="textDiv">
-          <h3 data-aos="fade up" className="smallText">
-            Salut Mr
+          <h3 data-aos="fade up" className="text-muted-foreground py-2">
+            Hello Mr
           </h3>
-          <h1 data-aos="fade up" className="AccueilTitle">
-            {auth.authData.firstName} <span>{auth.authData.lastName}</span>
+          <h1
+            data-aos="fade up"
+            className="AccueilTitle font-bold tracking-tight pb-2"
+          >
+            {auth.authData.firstName} {auth.authData.lastName}
           </h1>
         </div>
-        <div data-aos="fade up" className="AccueilTitleD">
-          Votre nombre total d'heures supplémentaires pour ce{" "}
-          <span>mois-ci </span>
+        <div data-aos="fade up" className="AccueilTitleD mb-4">
+          Your supplementary hours for this <span>month</span>
         </div>
+        <div className="px-20">
+          <Card>
+            <CardHeader className="">
+              <CardTitle className="flex title-left">
+                supplementary Hours
+              </CardTitle>
+              <CardDescription>
+                Your weekly supplementary hours.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="mt-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableCell>Day</TableCell>
+                    <TableCell>Hour</TableCell>
+                    <TableCell>Class Type</TableCell>
+                    <TableCell>Module</TableCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {hours.map((item) => (
+                    <TableRow key={item.id} style={{ height: "50px" }}>
+                      <TableCell>{item.Day}</TableCell>
+                      <TableCell>
+                        {item.StartTime.slice(0, 5)} -{" "}
+                        {item.EndTime.slice(0, 5)}
+                      </TableCell>
 
-        <div data-aos="fade up" className="cardDiv grid">
-          <div className="dateInput">
-            <label htmlFor="date">Sélectionnez votre mois</label>
-            <div className="input flex text-black">
-              <input type="date" />
-            </div>
-          </div>
-          <div className="totalHeurSup">
-            <div className="labelTotal flex">
-              <label htmlFor="heur">
-                Nombre total d'heures supplémentaires :
-              </label>
-              <h3 className="total">5h</h3>
-            </div>
-            <div className="input flex"></div>
-          </div>
-
-          <div className="VotrheursSup">
-            <div className="labelTotal flex">
-              <label htmlFor="heur">Votre nombre total d'heures Sup : </label>
-              <h3 className="total">2h</h3>
-            </div>
-            <div className="input flex"></div>
-          </div>
-          <div className="AllMonths">
-            <FaPlus className="icons" />
-            <span>Tous les mois</span>
-          </div>
+                      <TableCell>{item.Type}</TableCell>
+                      <TableCell>{item.Module}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>
   );
 };
+
+export default Accueil;

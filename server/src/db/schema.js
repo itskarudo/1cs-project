@@ -14,7 +14,7 @@ export const User = mysqlTable("User", {
   lastName: varchar("last_name", { length: 256 }).notNull(),
   email: varchar("email", { length: 256 }).notNull(),
   password: varchar("password", { length: 256 }).notNull(),
-  absence: int("absence").references(() => Absence.id),
+  absence: int("absence").references(() => Absence.id, { onDelete: "cascade" }),
   gradeId: int("grade_id")
     .references(() => Grade.id, { onUpdate: "cascade", onDelete: "cascade" })
     .notNull(),
@@ -25,10 +25,10 @@ export const Absence = mysqlTable("Absence", {
   id: int("id").autoincrement().primaryKey(),
   Date: date("Date").notNull(),
   SeanceId: int("seance_id")
-    .references(() => Seance.id)
+    .references(() => Seance.id, { onDelete: "cascade" })
     .notNull(),
   ProfId: int("Prof_id")
-    .references(() => User.id)
+    .references(() => User.id, { onUpdate: "cascade", onDelete: "cascade" })
     .notNull(),
 });
 
@@ -68,7 +68,13 @@ export const Schedule = mysqlTable("Schedule", {
     "3CS",
   ]).notNull(),
   Semester: mysqlEnum("Semester", ["S1", "S2"]).notNull(),
-  Speciality: mysqlEnum("Speciality", ["SIW", "ISI", "MI", "INFO"]).notNull(),
+  Speciality: mysqlEnum("Speciality", [
+    "SIW",
+    "ISI",
+    "AIDS",
+    "MI",
+    "INFO",
+  ]).notNull(),
 });
 
 export const Session = mysqlTable("Session", {
@@ -87,7 +93,7 @@ export const Grade = mysqlTable("Grade", {
   id: int("id").autoincrement().primaryKey(),
   Value: mysqlEnum("Value", [
     "Professeur",
-    "enseignant",
+    "Enseignant",
     "Assistant Master A",
     "Assistant Master B",
     "Lecturer A",

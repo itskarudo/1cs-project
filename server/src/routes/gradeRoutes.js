@@ -2,13 +2,12 @@ import express from "express";
 import { db } from "../db/index.js";
 import { Grade } from "../db/schema.js";
 import { eq } from "drizzle-orm";
-import { isAdmin } from "../middlewares/middlewares.js";
 
 const gradeRouter = express.Router();
 
 const allowedGrades = [
   "Professeur",
-  "enseignant",
+  "Enseignant",
   "Assistant Master A",
   "Assistant Master B",
   "Lecturer A",
@@ -38,7 +37,7 @@ gradeRouter.post("/", async (req, res) => {
     if (!allowedGrades.includes(Value)) {
       return res.status(400).json({
         error: `Only the following ranks are available (case sensetive): ${allowedGrades.join(
-          ", "
+          ", ",
         )}`,
       });
     }

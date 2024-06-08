@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { toast } from "sonner";
 import axios from "axios";
 import {
   Card,
@@ -16,7 +18,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,16 +29,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Separator } from "@/components/ui/separator";
+} from "@/components/ui/alert-dialog";
 import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-  } from "@/components/ui/breadcrumb"
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import {
   Select,
   SelectContent,
@@ -48,7 +49,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import React, { useState } from "react";
 import { AlertDestructive } from "@/components/ui/alertdemo";
 function SignupAdmin() {
@@ -63,10 +64,18 @@ function SignupAdmin() {
   const [alert, setAlert] = useState(false);
 
   // due to how shadcn <Select /> elements work, this needs to be its own state.
-  const [grade, setGrade] = useState("");
-  const [type, setType] = useState("");
+  const [gradeId, setGradeId] = useState("");
+  const [role, setRole] = useState("");
 
-  const navigate = useNavigate();
+  const [grades, setGrades] = useState([]);
+
+  const [deletedEmail, setDeletedEmail] = useState("");
+
+  useEffect(() => {
+    const url = "http://localhost:3000/grades";
+    axios.get(url).then((res) => setGrades(res.data.grades));
+  }, []);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -87,193 +96,209 @@ function SignupAdmin() {
 
         email: formData.email,
         password: formData.password,
-        grade: grade,
-        role: "admin",
+        gradeId,
+        role,
       });
-      navigate("/login");
+      toast.success("Member added successfully!");
     } catch (error) {
       console.error(error);
     }
   };
+
+  const handleDeleteEmail = async () => {
+    const url = `http://localhost:3000/users/${deletedEmail}`;
+    try {
+      await axios.delete(url);
+      toast.success("User deleted successfully!");
+    } catch (error) {
+      toast.error("User not found");
+    }
+  };
   return (
     <div>
-        <Separator className="mx-4"/>
-       <Breadcrumb className="mx-20 ">
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink>
-            <Link to="/Schedule">Aceuil</Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-    
-        <BreadcrumbItem>
-          <BreadcrumbPage className="text-blue-500">Ajouter member</BreadcrumbPage>
-        </BreadcrumbItem>
-      </BreadcrumbList>
-    </Breadcrumb>
-    <div className="pl-[100px] pb-8">
-            <h2 className="text-2xl font-bold tracking-tight">Ajouter Membres</h2>
-            <p className="text-muted-foreground">
-            Ajouter des nouveaux membre pour les heurs supplémentaire.
-            </p>
+      <Breadcrumb className="mx-20 ">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink>
+              <Link to="/">Home</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+
+          <BreadcrumbItem>
+            <BreadcrumbPage className="text-blue-500">
+              Add Members
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <div className="pl-[100px] pb-8">
+        <h2 className="text-2xl font-bold tracking-tight">Add Members</h2>
+        <p className="text-muted-foreground">
+          Add new teachers or admins here.
+        </p>
+      </div>
+      <div className="flex justify-center items-center">
+        <Card className="w-[1100px] pb-8 ">
+          <CardHeader>
+            <CardTitle></CardTitle>
+            <CardDescription></CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid w-full gap-4">
+              <div className="flex flex-col items-start space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  placeholder="First Name"
+                />
+              </div>
+              <div className="flex flex-col items-start space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  placeholder="Last Name"
+                />
+              </div>
+              <div className="flex flex-col items-start space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="@esi-sba.dz"
+                />
+              </div>
+              <div className="flex flex-col items-start space-y-2">
+                <Label htmlFor="grade">Grade</Label>
+                <Select onValueChange={setGradeId} value={formData.grade}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a grade..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {grades.map((g) => (
+                        <SelectItem key={g.id} value={g.id}>
+                          {g.Value}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col items-start space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select onValueChange={setRole} value={role}>
+                  <SelectTrigger className="">
+                    <SelectValue placeholder="Select a role..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                      <SelectItem value="enseignant">Enseignant</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col items-start space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Password"
+                />
+              </div>
+              <div className="flex flex-col items-start space-y-2">
+                <Label htmlFor="password">Confirme Password</Label>
+                <Input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm Password"
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <div className="space-y-4">
+              <Button className="w-full" onClick={handleSubmit}>
+                Add member
+              </Button>
+              {alert && <AlertDestructive />}
+            </div>
+          </CardFooter>
+          <div className=" text-center text-sm text-muted-foreground ">
+            <span className="">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="Ghost" className="text-blue-500 ">
+                    delete a member instead?
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom">
+                  <SheetHeader>
+                    <SheetTitle>Delete Member</SheetTitle>
+                    <SheetDescription>
+                      enter the member's email that you want to delete.
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="flex flex-col items-start space-y-2 px-32">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      type="email"
+                      name="email"
+                      value={deletedEmail}
+                      onChange={(e) => setDeletedEmail(e.target.value)}
+                      placeholder="@esi-sba.dz"
+                    />
+                  </div>
+                  <SheetFooter>
+                    <SheetClose asChild>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="bg-blue-500 text-white"
+                          >
+                            Submit
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Are you absolutely sure?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will delete the
+                              user permanently ,press continue to confirme .
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteEmail}>
+                              Continue
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </SheetClose>
+                  </SheetFooter>
+                </SheetContent>
+              </Sheet>
+            </span>
           </div>
-    <div className="flex justify-center items-center h-screen  pt-32">
-      <Card className="w-[1100px] pb-8 ">
-        <CardHeader>
-          <CardTitle></CardTitle>
-          <CardDescription></CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid w-full gap-4">
-            <div className="flex flex-col items-start space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                placeholder="First Name"
-              />
-            </div>
-            <div className="flex flex-col items-start space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                placeholder="Last Name"
-              />
-            </div>
-            <div className="flex flex-col items-start space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="@esi-sba.dz"
-              />
-            </div>
-            <div className="flex flex-col items-start space-y-2">
-              <Label htmlFor="grade">Grade</Label>
-              <Select onValueChange={setGrade} value={formData.grade}>
-                <SelectTrigger className="">
-                  <SelectValue placeholder="" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="Professeur">Professeur</SelectItem>
-                    <SelectItem value="enseignant">Enseignant</SelectItem>
-                    <SelectItem value="Assistant Master A">
-                      Assistant Master A
-                    </SelectItem>
-                    <SelectItem value="Assistant Master B">
-                      Assistant Master B
-                    </SelectItem>
-                    <SelectItem value="Lecturer A">Lecturer A</SelectItem>
-                    <SelectItem value="Lecturer B">Lecturer B</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col items-start space-y-2">
-              <Label htmlFor="type">Type</Label>
-              <Select onValueChange={setType} value={formData.type}>
-                <SelectTrigger className="">
-                  <SelectValue placeholder="Add new ..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="Admin">Admin</SelectItem>
-                    <SelectItem value="enseignant">Enseignant</SelectItem>
-                    
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col items-start space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Password"
-              />
-            </div>
-            <div className="flex flex-col items-start space-y-2">
-              <Label htmlFor="password">Confirme Password</Label>
-              <Input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Confirm Password"
-              />
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <div className="space-y-4">
-            <Button className="w-full" onClick={handleSubmit}>
-              Sign Up
-            </Button>
-            {alert && <AlertDestructive />}
-          </div>
-        </CardFooter>
-        <div className=" text-center text-sm text-muted-foreground ">
-          <span className="">
-            you wanna delete a member!
-            <Sheet >
-      <SheetTrigger asChild>
-        <Button variant="Ghost" className="text-blue-500 ">delete</Button>
-      </SheetTrigger>
-      <SheetContent side="bottom">
-        <SheetHeader >
-          <SheetTitle >Delete Member</SheetTitle>
-          <SheetDescription>
-            enter the member's email that you want to delete.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="flex flex-col items-start space-y-2 px-32">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                type="email"
-                name="email"
-                value=""
-                onChange=""
-                placeholder="@esi-sba.dz"
-              />
-            </div>
-        <SheetFooter>
-          <SheetClose asChild>
-          <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="outline" className="bg-blue-500 text-white">Submit</Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will delete the user permanently ,press continue to confirme .
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel  >Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-          </SheetClose>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-          </span>
-        </div>
-      </Card>
-    </div>
+        </Card>
+      </div>
     </div>
   );
 }
